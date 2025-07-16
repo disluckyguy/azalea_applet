@@ -1,13 +1,18 @@
 pub mod connection;
-pub mod widgets;
 pub mod runtime;
+pub mod widgets;
 use std::{
-    cell::RefCell, fmt::Debug, sync::{atomic::{AtomicUsize, Ordering}, Arc, OnceLock}
+    cell::RefCell,
+    fmt::Debug,
+    sync::{
+        Arc, OnceLock,
+        atomic::{AtomicUsize, Ordering},
+    },
 };
 
 pub use bincode;
-pub use serde;
 pub use iced;
+pub use serde;
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use tokio::{net::UnixStream, runtime::Runtime};
 pub use widgets::element::Element;
@@ -30,7 +35,7 @@ pub enum PluginRequest {
 pub enum RuntimeMessage {
     New(Plugin, usize),
     Request(PluginRequest, usize),
-
+    Shutdown(usize),
 }
 
 pub trait Application {
@@ -53,7 +58,6 @@ where
             if let Ok(Some(event)) = connection.read_frame().await {
                 match event {
                     PluginEvent::Update => {
-                        // let _ = app.update();
 
                         let element = app.view(&view_theme.borrow());
                         connection
@@ -62,7 +66,10 @@ where
                             .unwrap();
                     }
                     PluginEvent::Message(items) => {
-                        let message: A::Message = bincode::serde::decode_from_slice(&items, bincode::config::standard()).unwrap().0;
+                        let message: A::Message =
+                            bincode::serde::decode_from_slice(&items, bincode::config::standard())
+                                .unwrap()
+                                .0;
                         let _ = app.update(message);
 
                         let element = app.view(&view_theme.borrow());
@@ -90,6 +97,7 @@ pub(crate) fn tokio_runtime() -> &'static Runtime {
     RUNTIME.get_or_init(|| Runtime::new().expect("Setting up tokio runtime needs to succeed."))
 }
 
-pub fn unique_id() -> usize {
-    AtomicUsize::new(0).fetch_add(1, Ordering::Relaxed)
+static COUNTER: AtomicUsize = AtomicUsize::new(0);
+fn unique_id() -> usize {
+    COUNTER.fetch_add(1, Ordering::Relaxed)
 }

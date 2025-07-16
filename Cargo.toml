@@ -10,5 +10,5 @@ iced = { version = "0.13.1", features = ["advanced"] }
 iced_core = "0.13.2"
 iced_layershell = "0.13.7"
 serde = { version = "1.0.219", features = ["derive", "rc"] }
-tokio = {version = "1.46.0", features = ["rt", "rt-multi-thread", "net", "io-util"]}
+tokio = {version = "1.46.0", features = ["rt", "rt-multi-thread", "net", "io-util", "sync", "time"]}
 typetag = "0.2.20"
